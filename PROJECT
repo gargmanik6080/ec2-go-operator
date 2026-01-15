@@ -3,9 +3,19 @@
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
 cliVersion: 4.10.1
-domain: my.domain
+domain: mycloud.com
 layout:
 - go.kubebuilder.io/v4
 projectName: ec2-go-operator
 repo: github.com/gargmanik6080/ec2-go-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: mycloud.com
+  group: compute
+  kind: EC2Instance
+  path: github.com/gargmanik6080/ec2-go-operator/api/v1
+  version: v1
 version: "3"
