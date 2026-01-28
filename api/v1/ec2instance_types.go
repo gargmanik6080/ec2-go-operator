@@ -32,13 +32,28 @@ type EC2InstanceSpec struct {
 
 	// foo is an example field of EC2Instance. Edit ec2instance_types.go to remove/update
 	// +optional
-	Foo *string `json:"foo,omitempty"`
+	// Foo *string `json:"foo,omitempty"``
+	AmiId             string            `json:"amiId"`
+	SshKey            string            `json:"sshKey"`
+	Type              string            `json:"type,omitempty"`
+	Subnet            string            `json:"subnet"`
+	Tags              map[string]string `json:"tags,omitempty"`
+	Storage           StorageConfig     `json:"storage"`
+	AdditionalStorage []StorageConfig   `json:"additionalStorage,omitempty"`
+}
+
+type StorageConfig struct {
+	Size int    `json:"size,omitempty"`
+	Type string `json:"type,omitempty"`
 }
 
 // EC2InstanceStatus defines the observed state of EC2Instance.
 type EC2InstanceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Phase      string `json:"phase,omitempty"`
+	InstanceID string `json:"instanceID,omitempty"`
+	PublicIP   string `json:"publicIP,omitempty"`
 
 	// For Kubernetes API conventions, see:
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
@@ -55,7 +70,7 @@ type EC2InstanceStatus struct {
 	// +listType=map
 	// +listMapKey=type
 	// +optional
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
