@@ -1,0 +1,19 @@
+apiVersion: compute.mycloud.com/v1
+kind: EC2Instance
+
+metadata:
+  name: myinstance
+  namespace: default
+
+spec:
+  amiID: "myAMI-ID"
+  instanceName: "my-1st-instance"
+  sshKey: "my-key.pem"
+  type: "t3.medium"
+  subnet: "s-0123456"
+  tags:
+    environment: "test"
+  
+  storage:
+    size: 10
+    type: "gp2"
