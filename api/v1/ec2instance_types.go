@@ -33,7 +33,8 @@ type EC2InstanceSpec struct {
 	// foo is an example field of EC2Instance. Edit ec2instance_types.go to remove/update
 	// +optional
 	// Foo *string `json:"foo,omitempty"``
-	AmiId             string            `json:"amiId"`
+	AmiID             string            `json:"amiID"`
+	InstanceName      string            `json:"instanceName,omitempty"`
 	SshKey            string            `json:"sshKey"`
 	Type              string            `json:"type,omitempty"`
 	Subnet            string            `json:"subnet"`

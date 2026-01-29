@@ -48,10 +48,12 @@ spec:
                       type: string
                   type: object
                 type: array
-              amiId:
+              amiID:
                 description: |-
                   foo is an example field of EC2Instance. Edit ec2instance_types.go to remove/update
                   Foo *string `json:"foo,omitempty"``
+                type: string
+              instanceName:
                 type: string
               sshKey:
                 type: string
