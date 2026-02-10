@@ -34,26 +34,36 @@ type EC2InstanceSpec struct {
 	// +optional
 	// Foo *string `json:"foo,omitempty"``
 	AmiID             string            `json:"amiID"`
-	InstanceName      string            `json:"instanceName,omitempty"`
-	SshKey            string            `json:"sshKey"`
-	Type              string            `json:"type,omitempty"`
-	Subnet            string            `json:"subnet"`
+	InstanceType      string            `json:"type"`
+	Region            string            `json:"region"`
+	AvailabilityZone  string            `json:"availabilityZone,omitempty"`
+	KeyPair           string            `json:"keyPair,omitempty"`
+	SecurityGroups    []string          `json:"securityGroups,omitempty"`
+	Subnet            string            `json:"subnet,omitempty"`
+	UserData          string            `json:"userData,omitempty"`
 	Tags              map[string]string `json:"tags,omitempty"`
-	Storage           StorageConfig     `json:"storage"`
-	AdditionalStorage []StorageConfig   `json:"additionalStorage,omitempty"`
+	Storage           StorageConfig     `json:"storage,omitempty"`
+	AssociatePublicIP bool              `json:"associatePublicIP,omitempty"`
 }
 
 type StorageConfig struct {
-	Size int    `json:"size,omitempty"`
-	Type string `json:"type,omitempty"`
+	RootVolume        VolumeConfig   `json:"rootVolume,omitempty"`
+	AdditionalVolumes []VolumeConfig `json:"additionalVolumes,omitempty"`
+}
+
+type VolumeConfig struct {
+	Size       int32  `json:"size"`
+	Type       string `json:"type,omitempty"`
+	DeviceName string `json:"deviceName,omitempty"`
+	Encrypted  bool   `json:"yncrypted,omitempty"`
 }
 
 // EC2InstanceStatus defines the observed state of EC2Instance.
 type EC2InstanceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Phase      string `json:"phase,omitempty"`
 	InstanceID string `json:"instanceID,omitempty"`
+	State      string `json:"state,omitempty"`
 	PublicIP   string `json:"publicIP,omitempty"`
 
 	// For Kubernetes API conventions, see:

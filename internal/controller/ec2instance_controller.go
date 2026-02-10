@@ -51,14 +51,15 @@ func (r *EC2InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	l := logf.FromContext(ctx)
 
 	// TODO(user): your logic here
+	
 	ec2Instance := &computev1.EC2Instance{}
 	r.Get(ctx, req.NamespacedName, ec2Instance)
 
-	l.Info("Reconciling EC2Instance", "Name", ec2Instance.Spec.InstanceName)
+	l.Info("Reconciling EC2Instance", "Name", ec2Instance.Name)
 
-	fmt.Println("EC2 name is: ", ec2Instance.Spec.InstanceName)
+	fmt.Println("EC2 name is: ", ec2Instance.Name)
 
-	l.Info("EC2 reconciled", "Name", ec2Instance.Spec.InstanceName)
+	l.Info("EC2 reconciled", "Name", ec2Instance.Name)
 
 	return ctrl.Result{}, nil
 }
