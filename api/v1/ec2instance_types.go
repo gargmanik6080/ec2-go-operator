@@ -62,9 +62,13 @@ type VolumeConfig struct {
 type EC2InstanceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	InstanceID string `json:"instanceID,omitempty"`
-	State      string `json:"state,omitempty"`
-	PublicIP   string `json:"publicIP,omitempty"`
+	InstanceID string       `json:"instanceID,omitempty"`
+	State      string       `json:"state,omitempty"`
+	PublicIP   string       `json:"publicIP,omitempty"`
+	PublicDNS  string       `json:"publicDNS,omitempty"`
+	PrivateIP  string       `json:"privateIP,omitempty"`
+	PrivateDNS string       `json:"privateDNS,omitempty"`
+	LaunchTime *metav1.Time `json:"launchTime,omitempty"`
 
 	// For Kubernetes API conventions, see:
 	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
@@ -111,6 +115,15 @@ type EC2InstanceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitzero"`
 	Items           []EC2Instance `json:"items"`
+}
+
+type CreatedInstanceInfo struct {
+	InstanceID string `json:"instanceId"`
+	PublicIP   string `json:"publicIP"`
+	PrivateIP  string `json:"privateIP"`
+	PublicDNS  string `json:"publicDNS"`
+	PrivateDNS string `json:"privateDNS"`
+	State      string `json:"state"`
 }
 
 func init() {
