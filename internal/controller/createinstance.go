@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	computev1 "github.com/gargmanik6080/ec2-go-operator/api/v1"
+	"golang.org/x/tools/go/analysis/passes/defers"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -70,7 +71,52 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 	// Now that the EC2 is running, we can fetch the details of this instance
 	l.Info("=== CALLING AWS DescribeInstance API to get Instance details ===")
 	describeInput := &ec2.DescribeInstancesInput{
-		
+		InstanceIds: []string{*inst.InstanceId},
 	}
 
+	describeResult, err := ec2Client.DescribeInstances(context.TODO(), describeInput)
+	if err != nil {
+		l.Error(err, "Failed to describe instance")
+		return nil, fmt.Errorf("Failed to describe instance: %w", err)
+	}
+
+	fmt.Println("Describe result", 
+		"Public IP", *&describeResult.Reservations[0].Instances[0].PublicDnsName,
+		"State", *&describeResult.Reservations[0].Instances[0].State.Name,
+	)
+
+	// Using derefString function to check for a nil value
+	fmt.Printf("Private IP of the inatsnce: %v", derefString(inst.PrivateIpAddress))
+	fmt.Printf("State of the instance: %v", describeResult.Reservations[0].Instances[0].State.Name)
+	fmt.Printf("Private DNS of the instance: %v", derefString(inst.PrivateDnsName))
+	fmt.Printf("Instance ID of the instance: %v", derefString(inst.InstanceId))
+	fmt.Println("Instance Type of the instance: ", inst.InstanceType)
+	fmt.Printf("Image ID of the instance: %v", derefString(inst.ImageId))
+	fmt.Printf("Key Name of the instance: %v", derefString(inst.KeyName))
+
+	
+	instance := describeResult.Reservations[0].Instances[0]
+	createdInstanceInfo = &computev1.CreatedInstanceInfo{
+		InstanceID: *inst.InstanceId,
+		State: string(instance.State.Name),
+		PublicIP: derefString(instance.PublicIpAddress),
+		PrivateIP: derefString(instance.PrivateIpAddress),
+		PublicDNS: derefString(instance.PublicDnsName),
+		PrivateDNS: derefString(instance.PrivateDnsName),
+	}
+
+	l.Info("=== EC2 INSTANCE CREATION COMPLETED ===",
+		"instanceID", createdInstanceInfo.InstanceID,
+		"state", createdInstanceInfo.State,
+		"publicIP", createdInstanceInfo.PublicIP)
+
+	return createdInstanceInfo, nil
+
+}
+
+func derefString(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return "<NIL>"
 }
