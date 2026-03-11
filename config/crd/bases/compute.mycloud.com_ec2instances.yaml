@@ -111,6 +111,15 @@ spec:
                   INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
                   Important: Run "make" to regenerate code after modifying this file
                 type: string
+              launchTime:
+                format: date-time
+                type: string
+              privateDNS:
+                type: string
+              privateIP:
+                type: string
+              publicDNS:
+                type: string
               publicIP:
                 type: string
               state:
