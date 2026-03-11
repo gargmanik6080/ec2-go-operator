@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	ec2types "github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	computev1 "github.com/gargmanik6080/ec2-go-operator/api/v1"
-	"golang.org/x/tools/go/analysis/passes/defers"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
