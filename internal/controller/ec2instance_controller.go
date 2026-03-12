@@ -18,11 +18,13 @@ package controller
 
 import (
 	"context"
-	"fmt"
+	"time"
 
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	computev1 "github.com/gargmanik6080/ec2-go-operator/api/v1"
@@ -51,17 +53,99 @@ func (r *EC2InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	l := logf.FromContext(ctx)
 
 	// TODO(user): your logic here
+	// r.Get(ctx, req.NamespacedName, ec2Instance)
 	
+	// l.Info("Reconciling EC2Instance", "Name", ec2Instance.Name)
+	
+	// fmt.Println("EC2 name is: ", ec2Instance.Name)
+	
+	// l.Info("EC2 reconciled", "Name", ec2Instance.Name)
+	l.Info("=== RECONCILATION LOOP STARTED ===", "namespace", req.Namespace, "name", req.Name)
+
 	ec2Instance := &computev1.EC2Instance{}
-	r.Get(ctx, req.NamespacedName, ec2Instance)
+	if err := r.Get(ctx, req.NamespacedName, ec2Instance); err != nil {
+		if errors.IsNotFound(err) {
+			l.Info("Instance Deleted, No need to reconcile")
+			return ctrl.Result{}, nil
+		}
 
-	l.Info("Reconciling EC2Instance", "Name", ec2Instance.Name)
+		// If another error, backoff and retry
+		return ctrl.Result{}, err
+	}
 
-	fmt.Println("EC2 name is: ", ec2Instance.Name)
+	// checking if DeletionTimestamp is not zero
+	if !ec2Instance.DeletionTimestamp.IsZero() {
+		l.Info("Has deletionTimestamp, Instance is being deleted")
+		_, err := deleteInstance(ctx, ec2Instance)
+		if err != nil {
+			l.Error(err, "Failed to delete EC2 instance")
 
-	l.Info("EC2 reconciled", "Name", ec2Instance.Name)
+			return ctrl.Result{Requeue: true}, err
+		}
 
-	return ctrl.Result{}, nil
+		// Remove the finaliser
+		controllerutil.RemoveFinalizer(ec2Instance, "ec2instance.compute.mycloud.com")
+		if err := r.Update(ctx, ec2Instance); err != nil {
+			l.Error(err, "Failed to remove finalizer")
+
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		// Instance has been terminated and finalizer is removed
+		return ctrl.Result{}, nil
+	}
+
+	// If InstanceID is in status
+	if ec2Instance.Status.InstanceID != "" {
+		l.Info("Requesting object already exists in the namespace. Not creating a new instance", "instanceID", ec2Instance.Status.InstanceID)
+
+		/// TODO
+
+		return ctrl.Result{}, nil
+	}
+
+	// If instance is not being deleted and is not present, we are craeting a new instance
+	l.Info("Creating new instance")
+
+	l.Info("=== ADDING FINALIZER TO THE RESOURCE ===")
+	ec2Instance.Finalizers = append(ec2Instance.Finalizers, "ec2instance.compute.mycloud.com")
+	if err := r.Update(ctx,  ec2Instance); err != nil {
+		l.Error(err, "Fialed to add Finalizer")
+
+		return ctrl.Result{Requeue: true}, err
+	}
+	l.Info("=== FINALIZER ADDED - This will trigger a new reconcilation loop, but the current loop continues ===")
+
+	// Creating a new instance
+	l.Info("=== PROCEEDING WITH INSTANCE CRAETION ===")
+
+	createdInstanceInfo, err := createEC2Instance(ec2Instance)
+	if err != nil {
+		l.Error(err, "Failed to create EC2 instance")
+		return ctrl.Result{}, err
+	}
+
+	l.Info("=== INSTANCE CREATED ===")
+	l.Info("=== ABOUT TO UPDATE THE STATUS - This will trigger the reconcilation loop again ===",
+		"instanceID", createdInstanceInfo.InstanceID, 
+		"state", createdInstanceInfo.State)
+
+	ec2Instance.Status.InstanceID = createdInstanceInfo.InstanceID
+	ec2Instance.Status.State = createdInstanceInfo.State
+	ec2Instance.Status.PublicIP = createdInstanceInfo.PublicIP
+	ec2Instance.Status.PrivateIP = createdInstanceInfo.PrivateIP
+	ec2Instance.Status.PublicDNS = createdInstanceInfo.PublicDNS
+	ec2Instance.Status.PrivateDNS = createdInstanceInfo.PrivateDNS
+
+	err = r.Status().Update(ctx, ec2Instance)
+	if err != nil {
+		l.Error(err, "Failed to update status")
+		return ctrl.Result{}, err
+	}
+	l.Info("=== STATUS UPDATED ===")
+
+
+	return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
