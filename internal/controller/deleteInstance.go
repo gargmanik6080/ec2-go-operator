@@ -47,7 +47,7 @@ func deleteInstance(ctx context.Context, ec2Instance *computev1.EC2Instance) (bo
 	if err != nil {
 		l.Error(err, "Failed while waiting for instance termination",
 			"instanceID", ec2Instance.Status.InstanceID)
-		return false, err	
+		return false, err
 	}
 
 	l.Info("EC2 instance successfully terminated", "instanceID", ec2Instance.Status.InstanceID)

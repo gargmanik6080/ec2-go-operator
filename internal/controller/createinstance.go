@@ -25,12 +25,12 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 
 	// creating the input for the runInstances call
 	runInput := &ec2.RunInstancesInput{
-		ImageId:      aws.String(ec2Instance.Spec.AmiID),
-		InstanceType: ec2types.InstanceType(ec2Instance.Spec.InstanceType),
-		KeyName:      aws.String(ec2Instance.Spec.KeyPair),
-		SubnetId:     aws.String(ec2Instance.Spec.Subnet),
-		MinCount:     aws.Int32(1),
-		MaxCount:     aws.Int32(1),
+		ImageId:          aws.String(ec2Instance.Spec.AmiID),
+		InstanceType:     ec2types.InstanceType(ec2Instance.Spec.InstanceType),
+		KeyName:          aws.String(ec2Instance.Spec.KeyPair),
+		SubnetId:         aws.String(ec2Instance.Spec.Subnet),
+		MinCount:         aws.Int32(1),
+		MaxCount:         aws.Int32(1),
 		SecurityGroupIds: []string{ec2Instance.Spec.SecurityGroups[0]},
 	}
 
@@ -79,7 +79,7 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 		return nil, fmt.Errorf("Failed to describe instance: %w", err)
 	}
 
-	fmt.Println("Describe result", 
+	fmt.Println("Describe result",
 		"Public IP", *&describeResult.Reservations[0].Instances[0].PublicDnsName,
 		"State", *&describeResult.Reservations[0].Instances[0].State.Name,
 	)
@@ -93,14 +93,13 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 	fmt.Printf("Image ID of the instance: %v", derefString(inst.ImageId))
 	fmt.Printf("Key Name of the instance: %v", derefString(inst.KeyName))
 
-	
 	instance := describeResult.Reservations[0].Instances[0]
 	createdInstanceInfo = &computev1.CreatedInstanceInfo{
 		InstanceID: *inst.InstanceId,
-		State: string(instance.State.Name),
-		PublicIP: derefString(instance.PublicIpAddress),
-		PrivateIP: derefString(instance.PrivateIpAddress),
-		PublicDNS: derefString(instance.PublicDnsName),
+		State:      string(instance.State.Name),
+		PublicIP:   derefString(instance.PublicIpAddress),
+		PrivateIP:  derefString(instance.PrivateIpAddress),
+		PublicDNS:  derefString(instance.PublicDnsName),
 		PrivateDNS: derefString(instance.PrivateDnsName),
 	}
 

@@ -20,12 +20,12 @@ func checkEC2InstanceExists(ctx context.Context, instanceID string, ec2Instance 
 		InstanceIds: []string{instanceID},
 		Filters: []ec2types.Filter{
 			{
-				Name: aws.String("instance-state-name"),
+				Name:   aws.String("instance-state-name"),
 				Values: []string{"running"},
 			},
 		},
 	}
-	
+
 	result, err := ec2Client.DescribeInstances(ctx, input)
 	if err != nil {
 		if strings.Contains(err.Error(), "InvalidInstanceID.NotFound") {
