@@ -138,17 +138,20 @@ func (r *EC2InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, nil
 	}
 
-	// If instance is not being deleted and is not present, we are craeting a new instance
+	// If instance is not being deleted and is not present, we are creating a new instance
 	l.Info("Creating new instance")
 
-	l.Info("=== ADDING FINALIZER TO THE RESOURCE ===")
-	ec2Instance.Finalizers = append(ec2Instance.Finalizers, "ec2instance.compute.mycloud.com")
-	if err := r.Update(ctx, ec2Instance); err != nil {
-		l.Error(err, "Failed to add Finalizer")
+	l.Info("=== ADDING FINALIZER TO THE RESOURCE(If not present) ===")
 
-		return ctrl.Result{Requeue: true}, err
+	if !controllerutil.ContainsFinalizer(ec2Instance, "ec2instance.compute.mycloud.com") {
+		ec2Instance.Finalizers = append(ec2Instance.Finalizers, "ec2instance.compute.mycloud.com")
+		if err := r.Update(ctx, ec2Instance); err != nil {
+			l.Error(err, "Failed to add Finalizer")
+
+			return ctrl.Result{Requeue: true}, err
+		}
+		l.Info("=== FINALIZER ADDED - This will trigger a new reconcilation loop, but the current loop continues ===")
 	}
-	l.Info("=== FINALIZER ADDED - This will trigger a new reconcilation loop, but the current loop continues ===")
 
 	// Creating a new instance
 	l.Info("=== PROCEEDING WITH INSTANCE CREATION ===")

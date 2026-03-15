@@ -25,13 +25,17 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 
 	// creating the input for the runInstances call
 	runInput := &ec2.RunInstancesInput{
-		ImageId:          aws.String(ec2Instance.Spec.AmiID),
-		InstanceType:     ec2types.InstanceType(ec2Instance.Spec.InstanceType),
-		KeyName:          aws.String(ec2Instance.Spec.KeyPair),
-		SubnetId:         aws.String(ec2Instance.Spec.Subnet),
-		MinCount:         aws.Int32(1),
-		MaxCount:         aws.Int32(1),
-		SecurityGroupIds: []string{ec2Instance.Spec.SecurityGroups[0]},
+		ImageId:      aws.String(ec2Instance.Spec.AmiID),
+		InstanceType: ec2types.InstanceType(ec2Instance.Spec.InstanceType),
+		KeyName:      aws.String(ec2Instance.Spec.KeyPair),
+		SubnetId:     aws.String(ec2Instance.Spec.Subnet),
+		MinCount:     aws.Int32(1),
+		MaxCount:     aws.Int32(1),
+	}
+
+	// Add security groups if provided
+	if len(ec2Instance.Spec.SecurityGroups) > 0 {
+		runInput.SecurityGroupIds = ec2Instance.Spec.SecurityGroups
 	}
 
 	// Run the instance
@@ -85,13 +89,13 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 	)
 
 	// Using derefString function to check for a nil value
-	fmt.Printf("Private IP of the inatsnce: %v", derefString(inst.PrivateIpAddress))
-	fmt.Printf("State of the instance: %v", describeResult.Reservations[0].Instances[0].State.Name)
-	fmt.Printf("Private DNS of the instance: %v", derefString(inst.PrivateDnsName))
-	fmt.Printf("Instance ID of the instance: %v", derefString(inst.InstanceId))
+	fmt.Printf("Private IP of the instance: %v\n", derefString(inst.PrivateIpAddress))
+	fmt.Printf("State of the instance: %v\n", describeResult.Reservations[0].Instances[0].State.Name)
+	fmt.Printf("Private DNS of the instance: %v\n", derefString(inst.PrivateDnsName))
+	fmt.Printf("Instance ID of the instance: %v\n", derefString(inst.InstanceId))
 	fmt.Println("Instance Type of the instance: ", inst.InstanceType)
-	fmt.Printf("Image ID of the instance: %v", derefString(inst.ImageId))
-	fmt.Printf("Key Name of the instance: %v", derefString(inst.KeyName))
+	fmt.Printf("Image ID of the instance: %v\n", derefString(inst.ImageId))
+	fmt.Printf("Key Name of the instance: %v\n", derefString(inst.KeyName))
 
 	instance := describeResult.Reservations[0].Instances[0]
 	createdInstanceInfo = &computev1.CreatedInstanceInfo{

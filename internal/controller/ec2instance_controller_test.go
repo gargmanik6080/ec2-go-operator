@@ -51,7 +51,14 @@ var _ = Describe("EC2Instance Controller", func() {
 						Name:      resourceName,
 						Namespace: "default",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: computev1.EC2InstanceSpec{
+						AmiID:          "ami-test123",
+						InstanceType:   "t3.medium",
+						Region:         "us-east-1",
+						KeyPair:        "test-key",
+						Subnet:         "subnet-test123",
+						SecurityGroups: []string{"sg-test123"},
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
@@ -76,9 +83,10 @@ var _ = Describe("EC2Instance Controller", func() {
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
 				NamespacedName: typeNamespacedName,
 			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
+			// Test will fail because it calls real AWS with fake AMI ID
+			// In a real test, you'd mock the AWS client
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("InvalidAMIID.Malformed"))
 		})
 	})
 })

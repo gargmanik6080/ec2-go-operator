@@ -6,14 +6,17 @@ metadata:
   namespace: default
 
 spec:
-  amiID: "myAMI-ID"
-  instanceName: "my-1st-instance"
-  sshKey: "my-key.pem"
-  type: "t3.medium"
-  subnet: "s-0123456"
+  amiID: "ami-02dfbd4ff395f2a1b"
+  instanceType: "m3.medium"
+  region: "us-east-1"
+  keyPair: "my-test-key"
+  subnet: "subnet-0fe6753e455be7796"
+  securityGroups:
+  - "sg-05d79d7df8c4f74f4"
   tags:
     environment: "test"
   
   storage:
-    size: 10
-    type: "gp2"
+    rootVolume:
+      size: 10
+      type: "gp2"
