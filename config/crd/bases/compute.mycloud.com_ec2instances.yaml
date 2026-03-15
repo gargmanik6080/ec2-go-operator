@@ -48,6 +48,8 @@ spec:
                 type: boolean
               availabilityZone:
                 type: string
+              instanceType:
+                type: string
               keyPair:
                 type: string
               region:
@@ -63,13 +65,13 @@ spec:
                       properties:
                         deviceName:
                           type: string
+                        encrypted:
+                          type: boolean
                         size:
                           format: int32
                           type: integer
                         type:
                           type: string
-                        yncrypted:
-                          type: boolean
                       required:
                       - size
                       type: object
@@ -78,13 +80,13 @@ spec:
                     properties:
                       deviceName:
                         type: string
+                      encrypted:
+                        type: boolean
                       size:
                         format: int32
                         type: integer
                       type:
                         type: string
-                      yncrypted:
-                        type: boolean
                     required:
                     - size
                     type: object
@@ -95,13 +97,11 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
-              type:
-                type: string
               userData:
                 type: string
             required:
+            - instanceType
             - region
-            - type
             type: object
           status:
             description: status defines the observed state of EC2Instance

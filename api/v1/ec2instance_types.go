@@ -34,7 +34,7 @@ type EC2InstanceSpec struct {
 	// +optional
 	// Foo *string `json:"foo,omitempty"``
 	AmiID             string            `json:"amiID"`
-	InstanceType      string            `json:"type"`
+	InstanceType      string            `json:"instanceType"`
 	Region            string            `json:"region"`
 	AvailabilityZone  string            `json:"availabilityZone,omitempty"`
 	KeyPair           string            `json:"keyPair,omitempty"`
@@ -55,7 +55,7 @@ type VolumeConfig struct {
 	Size       int32  `json:"size"`
 	Type       string `json:"type,omitempty"`
 	DeviceName string `json:"deviceName,omitempty"`
-	Encrypted  bool   `json:"yncrypted,omitempty"`
+	Encrypted  bool   `json:"encrypted,omitempty"`
 }
 
 // EC2InstanceStatus defines the observed state of EC2Instance.

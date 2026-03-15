@@ -99,8 +99,42 @@ func (r *EC2InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if ec2Instance.Status.InstanceID != "" {
 		l.Info("Requesting object already exists in the namespace. Not creating a new instance", "instanceID", ec2Instance.Status.InstanceID)
 
-		/// TODO
+		instanceExists, instanceState, err := checkEC2InstanceExists(ctx, ec2Instance.Status.InstanceID, ec2Instance)
+		if err != nil {
+			// Instance might be terminated, clearing the status to trigger the reconcilation loop. to create a new instance
+			ec2Instance.Status.InstanceID = ""
+			ec2Instance.Status.State = ""
+			ec2Instance.Status.PublicIP = ""
+			ec2Instance.Status.PrivateIP = ""
+			ec2Instance.Status.PublicDNS = ""
+			ec2Instance.Status.PrivateDNS = ""
 
+			err = r.Status().Update(ctx, ec2Instance)
+			return ctrl.Result{Requeue: true}, err
+		}
+
+		if !instanceExists {
+			l.Info("Instance does not exist or is not in running state", 
+				"instanceID", ec2Instance.Status.InstanceID,
+				"state", instanceState)
+
+			ec2Instance.Status.State = "Unknown"
+			ec2Instance.Status.PublicIP = ""
+
+			err = r.Status().Update(ctx, ec2Instance)
+			return ctrl.Result{}, err
+		}
+
+		l.Info("Instance already exists and is in Running state")
+		if instanceExists && ec2Instance.Status.State == "Unknown" {
+			// if the instance state was previously marked as unknown, updating it now. 
+			ec2Instance.Status.State = string(instanceState.State.Name)
+			ec2Instance.Status.PublicIP = *instanceState.PublicIpAddress
+
+			err = r.Status().Update(ctx, ec2Instance)
+			return ctrl.Result{}, err
+
+		}
 		return ctrl.Result{}, nil
 	}
 
@@ -110,14 +144,14 @@ func (r *EC2InstanceReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	l.Info("=== ADDING FINALIZER TO THE RESOURCE ===")
 	ec2Instance.Finalizers = append(ec2Instance.Finalizers, "ec2instance.compute.mycloud.com")
 	if err := r.Update(ctx,  ec2Instance); err != nil {
-		l.Error(err, "Fialed to add Finalizer")
+		l.Error(err, "Failed to add Finalizer")
 
 		return ctrl.Result{Requeue: true}, err
 	}
 	l.Info("=== FINALIZER ADDED - This will trigger a new reconcilation loop, but the current loop continues ===")
 
 	// Creating a new instance
-	l.Info("=== PROCEEDING WITH INSTANCE CRAETION ===")
+	l.Info("=== PROCEEDING WITH INSTANCE CREATION ===")
 
 	createdInstanceInfo, err := createEC2Instance(ec2Instance)
 	if err != nil {
