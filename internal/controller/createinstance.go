@@ -27,10 +27,17 @@ func createEC2Instance(ec2Instance *computev1.EC2Instance) (createdInstanceInfo 
 	runInput := &ec2.RunInstancesInput{
 		ImageId:      aws.String(ec2Instance.Spec.AmiID),
 		InstanceType: ec2types.InstanceType(ec2Instance.Spec.InstanceType),
-		KeyName:      aws.String(ec2Instance.Spec.KeyPair),
-		SubnetId:     aws.String(ec2Instance.Spec.Subnet),
 		MinCount:     aws.Int32(1),
 		MaxCount:     aws.Int32(1),
+	}
+
+	// Handling optional fields
+	if ec2Instance.Spec.KeyPair != "" {
+		runInput.KeyName = aws.String(ec2Instance.Spec.KeyPair)
+	}
+
+	if ec2Instance.Spec.Subnet != "" {
+		runInput.SubnetId = aws.String(ec2Instance.Spec.Subnet)
 	}
 
 	// Add security groups if provided
